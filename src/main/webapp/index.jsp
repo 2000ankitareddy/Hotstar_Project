@@ -6,150 +6,143 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f9f9f9;
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
         }
 
-        /* Top Navbar */
         header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .logo {
-            font-size: 22px;
-            font-weight: bold;
-            color: red;
-        }
-
-        .search-bar input {
-            padding: 8px;
-            width: 300px;
-            border-radius: 20px;
-            border: 1px solid #ccc;
-        }
-
-        /* Video Grid */
-        .container {
+            background-color: #0f2027;
             padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
 
-        .video-card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
+        nav {
+            text-align: center;
+            padding: 15px;
+            background-color: #203a43;
+        }
+
+        nav button {
+            padding: 10px 25px;
+            margin: 10px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: #ff4b2b;
+            color: white;
             transition: 0.3s;
         }
 
-        .video-card:hover {
-            transform: scale(1.05);
+        nav button:hover {
+            background-color: #ff416c;
+            transform: scale(1.1);
         }
 
-        .thumbnail {
-            width: 100%;
-            height: 150px;
-            background: #ccc;
-        }
-
-        .video-title {
-            padding: 10px;
-            font-weight: bold;
-        }
-
-        /* Video Player */
-        .player-section {
+        .section {
             display: none;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
         }
 
-        video {
-            width: 80%;
-            max-width: 800px;
-            border-radius: 10px;
+        .card-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            color: black;
+            width: 200px;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
         }
 
         .back-btn {
-            margin-top: 15px;
-            padding: 8px 20px;
+            margin-top: 30px;
+            padding: 10px 20px;
             border: none;
-            background: red;
-            color: white;
             border-radius: 20px;
+            background-color: #00c6ff;
+            color: white;
             cursor: pointer;
         }
 
     </style>
 
     <script>
-        function playVideo(title) {
+        function showSection(sectionId) {
             document.getElementById("home").style.display = "none";
-            document.getElementById("player").style.display = "block";
-            document.getElementById("videoTitle").innerText = title;
-        }
+            document.getElementById("movies").style.display = "none";
+            document.getElementById("sports").style.display = "none";
+            document.getElementById("tv").style.display = "none";
 
-        function goHome() {
-            document.getElementById("player").style.display = "none";
-            document.getElementById("home").style.display = "block";
+            document.getElementById(sectionId).style.display = "block";
         }
     </script>
 </head>
 
 <body>
 
-<header>
-    <div class="logo">HotstarTube</div>
-    <div class="search-bar">
-        <input type="text" placeholder="Search">
-    </div>
-</header>
+<header>Hotstar</header>
 
-<!-- HOME SECTION -->
-<div id="home">
-    <div class="container">
+<nav>
+    <button onclick="showSection('movies')">Movies</button>
+    <button onclick="showSection('sports')">Sports</button>
+    <button onclick="showSection('tv')">TV Shows</button>
+</nav>
 
-        <div class="video-card" onclick="playVideo('Avengers Trailer')">
-            <div class="thumbnail"></div>
-            <div class="video-title">Avengers Trailer</div>
-        </div>
-
-        <div class="video-card" onclick="playVideo('IPL Highlights')">
-            <div class="thumbnail"></div>
-            <div class="video-title">IPL Highlights</div>
-        </div>
-
-        <div class="video-card" onclick="playVideo('Stranger Things Scene')">
-            <div class="thumbnail"></div>
-            <div class="video-title">Stranger Things Scene</div>
-        </div>
-
-        <div class="video-card" onclick="playVideo('RRR Action Scene')">
-            <div class="thumbnail"></div>
-            <div class="video-title">RRR Action Scene</div>
-        </div>
-
-    </div>
+<!-- HOME -->
+<div id="home" class="section" style="display:block;">
+    <h2>Welcome to Hotstar Clone</h2>
+    <p>Watch Unlimited Movies, Sports & TV Shows</p>
 </div>
 
-<!-- VIDEO PLAYER SECTION -->
-<div id="player" class="player-section">
-    <h2 id="videoTitle"></h2>
+<!-- MOVIES -->
+<div id="movies" class="section">
+    <h2>Trending Movies</h2>
+    <div class="card-container">
+        <div class="card">Avengers</div>
+        <div class="card">RRR</div>
+        <div class="card">Bahubali</div>
+        <div class="card">Jawan</div>
+    </div>
+    <button class="back-btn" onclick="showSection('home')">Back</button>
+</div>
 
-    <video controls>
-        <source src="sample.mp4" type="video/mp4">
-        Your browser does not support video.
-    </video>
+<!-- SPORTS -->
+<div id="sports" class="section">
+    <h2> Live Sports</h2>
+    <div class="card-container">
+        <div class="card">IPL</div>
+        <div class="card">Football</div>
+        <div class="card">World Cup</div>
+        <div class="card">Tennis</div>
+    </div>
+    <button class="back-btn" onclick="showSection('home')">Back</button>
+</div>
 
-    <br>
-    <button class="back-btn" onclick="goHome()">Back</button>
+<!-- TV SHOWS -->
+<div id="tv" class="section">
+    <h2>Popular TV Shows</h2>
+    <div class="card-container">
+        <div class="card">Stranger Things</div>
+        <div class="card">Money Heist</div>
+        <div class="card">Breaking Bad</div>
+        <div class="card">The Boys</div>
+    </div>
+    <button class="back-btn" onclick="showSection('home')">Back</button>
 </div>
 
 </body>
