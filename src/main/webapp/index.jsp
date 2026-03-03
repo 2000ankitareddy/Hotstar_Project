@@ -4,34 +4,90 @@
     <title>Hotstar</title>
     <style>
         body {
-            background-color: black;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #141e30, #243b55);
             color: white;
+        }
+
+        header {
+            background-color: #0f2027;
+            padding: 20px;
             text-align: center;
-            font-family: Arial;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            text-align: center;
+            padding: 15px;
+            background-color: #203a43;
+        }
+
+        nav button {
+            padding: 10px 25px;
+            margin: 10px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #ff4b2b;
+            color: white;
+            transition: 0.3s;
+        }
+
+        nav button:hover {
+            background-color: #ff416c;
+            transform: scale(1.1);
         }
 
         .section {
             display: none;
-            margin-top: 30px;
+            padding: 30px;
+            text-align: center;
         }
 
-        button {
+        .card-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            color: black;
+            width: 200px;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .back-btn {
+            margin-top: 30px;
             padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
+            border: none;
+            border-radius: 20px;
+            background-color: #00c6ff;
+            color: white;
             cursor: pointer;
         }
+
     </style>
 
     <script>
         function showSection(sectionId) {
-            // Hide all sections
             document.getElementById("home").style.display = "none";
             document.getElementById("movies").style.display = "none";
             document.getElementById("sports").style.display = "none";
             document.getElementById("tv").style.display = "none";
 
-            // Show selected section
             document.getElementById(sectionId).style.display = "block";
         }
     </script>
@@ -39,40 +95,54 @@
 
 <body>
 
-<!-- HOME SECTION -->
-<div id="home">
-    <h1>Hotstar</h1>
+<header>Hotstar</header>
 
+<nav>
     <button onclick="showSection('movies')">Movies</button>
     <button onclick="showSection('sports')">Sports</button>
     <button onclick="showSection('tv')">TV Shows</button>
+</nav>
+
+<!-- HOME -->
+<div id="home" class="section" style="display:block;">
+    <h2>Welcome to Hotstar Clone</h2>
+    <p>Watch Unlimited Movies, Sports & TV Shows</p>
 </div>
 
-<!-- MOVIES SECTION -->
+<!-- MOVIES -->
 <div id="movies" class="section">
-    <h1>Movies 🎬</h1>
-    <p>Avengers</p>
-    <p>Bahubali</p>
-    <p>RRR</p>
-    <button onclick="showSection('home')">Back</button>
+    <h2>Trending Movies</h2>
+    <div class="card-container">
+        <div class="card">Avengers</div>
+        <div class="card">RRR</div>
+        <div class="card">Bahubali</div>
+        <div class="card">Jawan</div>
+    </div>
+    <button class="back-btn" onclick="showSection('home')">Back</button>
 </div>
 
-<!-- SPORTS SECTION -->
+<!-- SPORTS -->
 <div id="sports" class="section">
-    <h1>Sports 🏏</h1>
-    <p>Cricket</p>
-    <p>Football</p>
-    <p>IPL</p>
-    <button onclick="showSection('home')">Back</button>
+    <h2> Live Sports</h2>
+    <div class="card-container">
+        <div class="card">IPL</div>
+        <div class="card">Football</div>
+        <div class="card">World Cup</div>
+        <div class="card">Tennis</div>
+    </div>
+    <button class="back-btn" onclick="showSection('home')">Back</button>
 </div>
 
-<!-- TV SECTION -->
+<!-- TV SHOWS -->
 <div id="tv" class="section">
-    <h1>TV Shows 📺</h1>
-    <p>Breaking Bad</p>
-    <p>Stranger Things</p>
-    <p>Money Heist</p>
-    <button onclick="showSection('home')">Back</button>
+    <h2>Popular TV Shows</h2>
+    <div class="card-container">
+        <div class="card">Stranger Things</div>
+        <div class="card">Money Heist</div>
+        <div class="card">Breaking Bad</div>
+        <div class="card">The Boys</div>
+    </div>
+    <button class="back-btn" onclick="showSection('home')">Back</button>
 </div>
 
 </body>
