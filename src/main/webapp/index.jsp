@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hotstar Clone</title>
+    <title>Hotstar</title>
 </head>
 <body style="background:black;color:white;text-align:center">
 
-<h1>Hotstar Clone</h1>
+<h1>Hotstar</h1>
 
-<form action="action" method="get">
-    <button name="type" value="movies">Movies</button>
-    <button name="type" value="sports">Sports</button>
-    <button name="type" value="tv">TV Shows</button>
-</form>
+<br><br>
+
+<a href="movies.html">
+    <button>Movies</button>
+</a>
+
+<a href="sports.html">
+    <button>Sports</button>
+</a>
+
+<a href="tv.html">
+    <button>TV Shows</button>
+</a>
 
 </body>
 </html>
