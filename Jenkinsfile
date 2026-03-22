@@ -12,7 +12,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 checkout scmGit(
@@ -55,15 +54,6 @@ pipeline {
             }
         }
 
-        stage('Run Container') {
-            steps {
-                sh 'docker stop hotstar-container || true'
-                sh 'docker rm hotstar-container || true'
-                sh 'docker run -d -p 9090:8080 --name hotstar-container $IMAGE_NAME'
-            }
-        }
-
-        // Optional Kubernetes Deployment
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
