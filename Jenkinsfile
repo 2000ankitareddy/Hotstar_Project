@@ -49,7 +49,6 @@ pipeline {
                 script {
                     sh "sed -i 's|IMAGE_TAG|${IMAGE_TAG}|g' k8s/deployment.yml"
                     sh 'kubectl apply -f k8s/deployment.yml'
-                    sh 'kubectl apply -f k8s/service.yml'
                 }
             }
         }
