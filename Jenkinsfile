@@ -24,6 +24,14 @@ pipeline {
             }
         }
 
+        stage('Build WAR') {
+            steps {
+                dir("${WORK_DIR}") {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 dir("${WORK_DIR}") {
