@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hotstar-deployment
+  labels:
+    app: hotstar
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hotstar
+  template:
+    metadata:
+      labels:
+        app: hotstar
+    spec:
+      containers:
+      - name: hotstar
+        image: ankitanallamilli/hotstar-webapp:IMAGE_TAG
+        ports:
+        - containerPort: 8080
