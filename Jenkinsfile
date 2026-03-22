@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = 'dockerhub-cred'
+        DOCKER_HUB_CREDENTIALS = 'ANKITA_DOCK_HUB'
         DOCKER_IMAGE = 'ankitanallamilli/hotstar-webapp'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
