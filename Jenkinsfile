@@ -1,66 +1,56 @@
 pipeline {
     agent any
 
-    tools {
-        maven "Maven"
-        jdk "JDK17"
+    environment {
+        DOCKER_HUB_CREDENTIALS = 'dockerhub-cred'
+        DOCKER_IMAGE = 'ankitanallamilli/hotstar-webapp'
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
-    environment {
-        DOCKER_HUB_USERNAME = "ankitanallamilli"
-        IMAGE_NAME = "${DOCKER_HUB_USERNAME}/hotstar-image:${BUILD_NUMBER}"
+    tools {
+        maven 'Maven'
+        jdk 'JDK17'
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        credentialsId: 'ankigithub',
-                        url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
-                    ]]
-                )
+                git url: 'https://github.com/2000ankitareddy/Hotstar_Project.git', branch: 'main'
             }
         }
 
         stage('Build WAR') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn clean package'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
-            }
-        }
-
-        stage('Login to DockerHub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'USERNAME',
-                    passwordVariable: 'PASSWORD'
-                )]) {
-                    sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                script {
+                    docker.build("${DOCKER_IMAGE}:${IMAGE_TAG}")
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $IMAGE_NAME'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_HUB_CREDENTIALS}") {
+                        docker.image("${DOCKER_IMAGE}:${IMAGE_TAG}").push()
+                    }
+                }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                sed -i "s|IMAGE_TAG|${BUILD_NUMBER}|g" deployment.yml
-                kubectl apply -f deployment.yml
-                kubectl apply -f service.yml
-                '''
+                script {
+                    sh "sed -i 's|IMAGE_TAG|${IMAGE_TAG}|g' k8s/deployment.yml"
+                    sh 'kubectl apply -f k8s/deployment.yml'
+                    sh 'kubectl apply -f k8s/service.yml'
+                }
             }
         }
     }
