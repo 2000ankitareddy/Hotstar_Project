@@ -85,7 +85,6 @@ pipeline {
             steps {
                 sh '''
                     kubectl apply -f k8s/deploy1.yml
-                    kubectl apply -f k8s/ingress1.yml
                 '''
             }
         }
