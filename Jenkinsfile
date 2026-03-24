@@ -92,7 +92,7 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                    kubectl rollout status deployment hotstarwebapp-deployment
+                    kubectl rollout status deployment hotstar-deployment
                     kubectl get pods -o wide
                     kubectl get svc
                     kubectl get ingress
