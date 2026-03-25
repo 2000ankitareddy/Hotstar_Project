@@ -128,5 +128,41 @@ pipeline {
         always {
             cleanWs()
         }
+        post {
+
+    success {
+        emailext(
+            subject: "SUCCESS: Build #${BUILD_NUMBER}",
+            body: """
+            Good news 🚀
+
+            Build Successful!
+
+            Job Name: ${JOB_NAME}
+            Build Number: ${BUILD_NUMBER}
+            Build URL: ${BUILD_URL}
+            """,
+            to: "ankitareddynallamilli@gmail.com"
+        )
+    }
+
+    failure {
+        emailext(
+            subject: "FAILED: Build #${BUILD_NUMBER}",
+            body: """
+            Alert ❌
+
+            Build Failed!
+
+            Job Name: ${JOB_NAME}
+            Build Number: ${BUILD_NUMBER}
+            Build URL: ${BUILD_URL}
+
+            Please check immediately.
+            """,
+            to: "ankitareddynallamilli@gmail.com"
+        )
+    }
+}
     }
 }
