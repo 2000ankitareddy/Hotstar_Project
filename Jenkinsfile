@@ -1,6 +1,8 @@
 pipeline {
     agent any
+
     environment {
+
         WORK_DIR = "/var/lib/jenkins/workspace/Hotstar_WebApp"
 
         IMAGE_NAME = "hotstar-webapp"
@@ -15,73 +17,117 @@ pipeline {
         DEPLOYMENT_FILE = "k8s/deploy1.yml"
         DEPLOYMENT_NAME = "hotstar-deployment"
         NAMESPACE = "default"
+
+        EMAIL_ID = "ankitareddynallamilli@gmail.com"
     }
+
 
     stages {
 
         stage('Checkout Code') {
+
             steps {
+
                 dir("${WORK_DIR}") {
+
                     git branch: 'main',
                     url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
+
                 }
+
             }
+
         }
+
 
         stage('Build WAR File') {
+
             steps {
+
                 dir("${WORK_DIR}") {
+
                     sh 'mvn clean package -DskipTests'
+
                 }
+
             }
+
         }
 
+
         stage('Build Docker Image') {
+
             steps {
+
                 dir("${WORK_DIR}") {
+
                     sh """
                     docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
                     """
+
                 }
+
             }
+
         }
 
+
         stage('DockerHub Login') {
+
             steps {
+
                 withCredentials([usernamePassword(
+
                     credentialsId: "${DOCKER_CREDS}",
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
+
                 )]) {
 
                     sh """
                     echo \$DOCKER_PASS | docker login \
                     -u \$DOCKER_USER --password-stdin
                     """
+
                 }
+
             }
+
         }
 
+
         stage('Push Image to DockerHub') {
+
             steps {
+
                 sh """
                 docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                 """
+
             }
+
         }
 
+
         stage('Configure EKS Access') {
+
             steps {
+
                 sh """
                 aws eks update-kubeconfig \
                 --region ${AWS_REGION} \
                 --name ${EKS_CLUSTER}
                 """
+
             }
+
         }
 
+
         stage('Deploy to Kubernetes') {
+
             steps {
+
                 dir("${WORK_DIR}") {
 
                     sh """
@@ -89,31 +135,72 @@ pipeline {
 
                     kubectl apply -f ${DEPLOYMENT_FILE}
                     """
+
                 }
+
             }
+
         }
 
-        stage('Verify Deployment') {
+
+        stage('Verify Deployment Rollout') {
+
             steps {
+
                 sh """
                 kubectl rollout status deployment/${DEPLOYMENT_NAME} \
                 -n ${NAMESPACE} \
                 --timeout=120s
+                """
 
+            }
+
+        }
+
+
+        stage('Verify Pods and Services') {
+
+            steps {
+
+                sh """
                 kubectl get pods -o wide
                 kubectl get svc
                 kubectl get ingress
                 """
+
             }
+
         }
 
     }
 
+
     post {
 
         success {
+
             echo "Deployment Successful 🚀"
+
+            emailext(
+
+                subject: "SUCCESS: Build #${BUILD_NUMBER}",
+
+                body: """
+Good news 🚀
+
+Build Successful!
+
+Job Name: ${JOB_NAME}
+Build Number: ${BUILD_NUMBER}
+Build URL: ${BUILD_URL}
+""",
+
+                to: "${EMAIL_ID}"
+
+            )
+
         }
+
 
         failure {
 
@@ -123,46 +210,36 @@ pipeline {
             kubectl rollout undo deployment/${DEPLOYMENT_NAME} \
             -n ${NAMESPACE} || true
             """
+
+            emailext(
+
+                subject: "FAILED: Build #${BUILD_NUMBER}",
+
+                body: """
+Alert ❌
+
+Build Failed!
+
+Job Name: ${JOB_NAME}
+Build Number: ${BUILD_NUMBER}
+Build URL: ${BUILD_URL}
+
+Rollback attempted automatically.
+""",
+
+                to: "${EMAIL_ID}"
+
+            )
+
         }
+
 
         always {
+
             cleanWs()
+
         }
-        post {
 
-    success {
-        emailext(
-            subject: "SUCCESS: Build #${BUILD_NUMBER}",
-            body: """
-            Good news 🚀
-
-            Build Successful!
-
-            Job Name: ${JOB_NAME}
-            Build Number: ${BUILD_NUMBER}
-            Build URL: ${BUILD_URL}
-            """,
-            to: "ankitareddynallamilli@gmail.com"
-        )
     }
 
-    failure {
-        emailext(
-            subject: "FAILED: Build #${BUILD_NUMBER}",
-            body: """
-            Alert ❌
-
-            Build Failed!
-
-            Job Name: ${JOB_NAME}
-            Build Number: ${BUILD_NUMBER}
-            Build URL: ${BUILD_URL}
-
-            Please check immediately.
-            """,
-            to: "ankitareddynallamilli@gmail.com"
-        )
-    }
-}
-    }
 }
