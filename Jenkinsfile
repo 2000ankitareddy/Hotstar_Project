@@ -3,22 +3,24 @@ pipeline {
 
     environment {
         WORK_DIR = "/var/lib/jenkins/workspace/Hotstar_WebApp"
+
         IMAGE_NAME = "hotstar-webapp"
         IMAGE_TAG = "${BUILD_NUMBER}"
+
         DOCKERHUB_USER = "ankitanallamilli"
         DOCKER_CREDS = "ANKITA_DOCK_HUB"
 
         AWS_REGION = "us-east-1"
         EKS_CLUSTER = "saicluster"
 
+        DEPLOYMENT_FILE = "k8s/deploy1.yml"
         DEPLOYMENT_NAME = "hotstar-deployment"
-        CONTAINER_NAME = "hotstar-container"
         NAMESPACE = "default"
     }
 
     stages {
 
-        stage('Checkout Source Code') {
+        stage('Checkout Code') {
             steps {
                 dir("${WORK_DIR}") {
                     git branch: 'main',
@@ -27,7 +29,7 @@ pipeline {
             }
         }
 
-        stage('Build Application') {
+        stage('Build WAR File') {
             steps {
                 dir("${WORK_DIR}") {
                     sh 'mvn clean package -DskipTests'
@@ -39,8 +41,7 @@ pipeline {
             steps {
                 dir("${WORK_DIR}") {
                     sh """
-                    docker build \
-                    -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
+                    docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
                     """
                 }
             }
@@ -53,6 +54,7 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
+
                     sh """
                     echo \$DOCKER_PASS | docker login \
                     -u \$DOCKER_USER --password-stdin
@@ -64,8 +66,7 @@ pipeline {
         stage('Push Image to DockerHub') {
             steps {
                 sh """
-                docker push \
-                ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                 """
             }
         }
@@ -82,28 +83,24 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh """
-                kubectl set image deployment/${DEPLOYMENT_NAME} \
-                ${CONTAINER_NAME}=${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} \
-                -n ${NAMESPACE}
-                """
+                dir("${WORK_DIR}") {
+
+                    sh """
+                    sed -i 's|image:.*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}
+
+                    kubectl apply -f ${DEPLOYMENT_FILE}
+                    """
+                }
             }
         }
 
-        stage('Verify Deployment Rollout') {
+        stage('Verify Deployment') {
             steps {
                 sh """
-                kubectl rollout status \
-                deployment/${DEPLOYMENT_NAME} \
+                kubectl rollout status deployment/${DEPLOYMENT_NAME} \
                 -n ${NAMESPACE} \
                 --timeout=120s
-                """
-            }
-        }
 
-        stage('Verify Pods and Services') {
-            steps {
-                sh """
                 kubectl get pods -o wide
                 kubectl get svc
                 kubectl get ingress
@@ -120,10 +117,12 @@ pipeline {
         }
 
         failure {
-            echo "Deployment Failed ❌ Rolling back..."
+
+            echo "Deployment Failed ❌ Attempting rollback..."
 
             sh """
-            kubectl rollout undo deployment/${DEPLOYMENT_NAME}
+            kubectl rollout undo deployment/${DEPLOYMENT_NAME} \
+            -n ${NAMESPACE} || true
             """
         }
 
