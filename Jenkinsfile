@@ -5,26 +5,29 @@ pipeline {
         WORK_DIR = "/var/lib/jenkins/workspace/Hotstar_WebApp"
         IMAGE_NAME = "hotstar-webapp"
         IMAGE_TAG = "${BUILD_NUMBER}"
-        CONTAINER_NAME = "hotstar-webapp-container"
-        PORT = "8080"
         DOCKERHUB_USER = "ankitanallamilli"
         DOCKER_CREDS = "ANKITA_DOCK_HUB"
-        CONTAINER_PORT = "8080"
+
         AWS_REGION = "us-east-1"
         EKS_CLUSTER = "saicluster"
-        KUBECONFIG = "/var/lib/jenkins/.kube/config"
+
+        DEPLOYMENT_NAME = "hotstar-deployment"
+        CONTAINER_NAME = "hotstar-container"
+        NAMESPACE = "default"
     }
 
     stages {
-        stage('Checkout Code') {
+
+        stage('Checkout Source Code') {
             steps {
                 dir("${WORK_DIR}") {
-                    git branch: 'main', url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
+                    git branch: 'main',
+                    url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
                 }
             }
         }
 
-        stage('Build WAR') {
+        stage('Build Application') {
             steps {
                 dir("${WORK_DIR}") {
                     sh 'mvn clean package -DskipTests'
@@ -35,10 +38,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir("${WORK_DIR}") {
-                    sh '''
-                        docker rmi -f ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} || true
-                        docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
-                    '''
+                    sh """
+                    docker build \
+                    -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
+                    """
                 }
             }
         }
@@ -51,7 +54,8 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                    echo \$DOCKER_PASS | docker login \
+                    -u \$DOCKER_USER --password-stdin
                     """
                 }
             }
@@ -59,45 +63,72 @@ pipeline {
 
         stage('Push Image to DockerHub') {
             steps {
-                sh "docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}"
-            }
-        }
-
-        stage('Update K8s Deployment') {
-            steps {
-                sh '''
-                    sed -i "s|image:.*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}|" k8s/deploy1.yml
-                '''
+                sh """
+                docker push \
+                ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
 
         stage('Configure EKS Access') {
             steps {
-                sh '''
-                    export PATH=$PATH:/usr/local/bin
-                    aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER
-                    /usr/local/bin/kubectl config current-context
-                '''
+                sh """
+                aws eks update-kubeconfig \
+                --region ${AWS_REGION} \
+                --name ${EKS_CLUSTER}
+                """
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                    kubectl apply -f k8s/deploy1.yml
-                '''
+                sh """
+                kubectl set image deployment/${DEPLOYMENT_NAME} \
+                ${CONTAINER_NAME}=${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} \
+                -n ${NAMESPACE}
+                """
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Verify Deployment Rollout') {
             steps {
-                sh '''
-                    kubectl rollout status deployment hotstar-deployment
-                    kubectl get pods -o wide
-                    kubectl get svc
-                    kubectl get ingress
-                '''
+                sh """
+                kubectl rollout status \
+                deployment/${DEPLOYMENT_NAME} \
+                -n ${NAMESPACE} \
+                --timeout=120s
+                """
             }
+        }
+
+        stage('Verify Pods and Services') {
+            steps {
+                sh """
+                kubectl get pods -o wide
+                kubectl get svc
+                kubectl get ingress
+                """
+            }
+        }
+
+    }
+
+    post {
+
+        success {
+            echo "Deployment Successful 🚀"
+        }
+
+        failure {
+            echo "Deployment Failed ❌ Rolling back..."
+
+            sh """
+            kubectl rollout undo deployment/${DEPLOYMENT_NAME}
+            """
+        }
+
+        always {
+            cleanWs()
         }
     }
 }
