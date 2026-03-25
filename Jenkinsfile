@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     environment {
         WORK_DIR = "/var/lib/jenkins/workspace/Hotstar_WebApp"
 
