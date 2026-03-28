@@ -25,151 +25,98 @@ pipeline {
     stages {
 
         stage('Checkout Code') {
-
             steps {
-
-                dir("${WORK_DIR}") {
-
-                    git branch: 'main',
-                    url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
-
-                }
-
+                git branch: 'main',
+                url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
             }
-
         }
 
 
         stage('Build WAR File') {
-
             steps {
-
-                dir("${WORK_DIR}") {
-
-                    sh 'mvn clean package -DskipTests'
-
-                }
-
+                sh 'mvn clean package -DskipTests'
             }
-
         }
 
 
         stage('Build Docker Image') {
-
             steps {
-
-                dir("${WORK_DIR}") {
-
-                    sh """
-                    docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
-                    """
-
-                }
-
+                sh """
+                sudo docker build \
+                -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} .
+                """
             }
-
         }
 
 
         stage('DockerHub Login') {
-
             steps {
-
                 withCredentials([usernamePassword(
-
                     credentialsId: "${DOCKER_CREDS}",
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
-
                 )]) {
 
                     sh """
-                    echo \$DOCKER_PASS | docker login \
+                    echo \$DOCKER_PASS | sudo docker login \
                     -u \$DOCKER_USER --password-stdin
                     """
-
                 }
-
             }
-
         }
 
 
         stage('Push Image to DockerHub') {
-
             steps {
-
                 sh """
-                docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                sudo docker push \
+                ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
                 """
-
             }
-
         }
 
 
         stage('Configure EKS Access') {
-
             steps {
-
                 sh """
                 aws eks update-kubeconfig \
                 --region ${AWS_REGION} \
                 --name ${EKS_CLUSTER}
                 """
-
             }
-
         }
 
 
         stage('Deploy to Kubernetes') {
-
             steps {
+                sh """
+                sed -i 's|image:.*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}
 
-                dir("${WORK_DIR}") {
-
-                    sh """
-                    sed -i 's|image:.*|image: ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}
-
-                    kubectl apply -f ${DEPLOYMENT_FILE}
-                    """
-
-                }
-
+                kubectl apply -f ${DEPLOYMENT_FILE}
+                """
             }
-
         }
 
 
         stage('Verify Deployment Rollout') {
-
             steps {
-
                 sh """
                 kubectl rollout status deployment/${DEPLOYMENT_NAME} \
                 -n ${NAMESPACE} \
                 --timeout=120s
                 """
-
             }
-
         }
 
 
         stage('Verify Pods and Services') {
-
             steps {
-
                 sh """
                 kubectl get pods -o wide
                 kubectl get svc
                 kubectl get ingress
                 """
-
             }
-
         }
 
     }
@@ -182,9 +129,7 @@ pipeline {
             echo "Deployment Successful 🚀"
 
             emailext(
-
                 subject: "SUCCESS: Build #${BUILD_NUMBER}",
-
                 body: """
 Good news 🚀
 
@@ -194,11 +139,8 @@ Job Name: ${JOB_NAME}
 Build Number: ${BUILD_NUMBER}
 Build URL: ${BUILD_URL}
 """,
-
                 to: "${EMAIL_ID}"
-
             )
-
         }
 
 
@@ -212,9 +154,7 @@ Build URL: ${BUILD_URL}
             """
 
             emailext(
-
                 subject: "FAILED: Build #${BUILD_NUMBER}",
-
                 body: """
 Alert ❌
 
@@ -226,20 +166,13 @@ Build URL: ${BUILD_URL}
 
 Rollback attempted automatically.
 """,
-
                 to: "${EMAIL_ID}"
-
             )
-
         }
 
 
         always {
-
             cleanWs()
-
         }
-
     }
-
 }
