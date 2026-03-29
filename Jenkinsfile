@@ -27,7 +27,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/2000ankitareddy/Hotstar_Project.git'
+                url: 'https://github.com/ankitanallamilli/Hotstar_Project.git'
             }
         }
 
