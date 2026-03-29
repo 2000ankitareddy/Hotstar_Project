@@ -12,7 +12,7 @@ pipeline {
         DOCKER_CREDS = "ANKITA_DOCK_HUB"
 
         AWS_REGION = "us-east-1"
-        EKS_CLUSTER = "saicluster"
+        EKS_CLUSTER = "saiicluster"
 
         DEPLOYMENT_FILE = "k8s/deploy1.yml"
         DEPLOYMENT_NAME = "hotstar-deployment"
