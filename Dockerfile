@@ -1,10 +1,11 @@
-FROM tomcat:9.0-jdk17
+FROM tomcat:9.0-jdk17-temurin
 
-RUN rm -rf /usr/local/tomcat/webapps/*
+WORKDIR /usr/local/tomcat
 
-COPY target/hotstar-1.0-SNAPSHOT.war /usr/local/tomcat/webapps/ROOT.war
+RUN rm -rf webapps/*
+
+COPY target/*.war webapps/ROOT.war
 
 EXPOSE 8080
 
 CMD ["catalina.sh", "run"]
-
