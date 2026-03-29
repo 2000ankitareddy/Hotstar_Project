@@ -38,6 +38,11 @@ pipeline {
             }
         }
 
+        stage('Check WAR File') {
+    steps {
+        sh 'ls -l target/'
+    }
+}
 
         stage('Build Docker Image') {
             steps {
